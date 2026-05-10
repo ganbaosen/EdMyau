@@ -61,6 +61,7 @@ public class ClickGui extends GuiScreen {
         movementModules.add(Myau.moduleManager.getModule(Eagle.class));
         movementModules.add(Myau.moduleManager.getModule(NoJumpDelay.class));
         movementModules.add(Myau.moduleManager.getModule(AntiVoid.class));
+        movementModules.add(Myau.moduleManager.getModule(ReduceVelocity.class));
         movementModules.add(Myau.moduleManager.getModule(Stuck.class));
 
         List<Module> renderModules = new ArrayList<>();

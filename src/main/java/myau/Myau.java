@@ -115,6 +115,7 @@ public class Myau {
         moduleManager.modules.put(Noslow1.class, new Noslow1());
         moduleManager.modules.put(Radar.class, new Radar());
         moduleManager.modules.put(Reach.class, new Reach());
+        moduleManager.modules.put(ReduceVelocity.class, new ReduceVelocity());
         moduleManager.modules.put(Refill.class, new Refill());
         moduleManager.modules.put(SafeWalk.class, new SafeWalk());
         moduleManager.modules.put(Scaffold.class, new Scaffold());

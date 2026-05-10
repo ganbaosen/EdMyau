@@ -5,6 +5,7 @@ import myau.Myau;
 import myau.enums.BlinkModules;
 import myau.event.EventTarget;
 import myau.event.types.EventType;
+import myau.event.types.Priority;
 import myau.events.LivingUpdateEvent;
 import myau.events.PacketEvent;
 import myau.events.UpdateEvent;
@@ -73,7 +74,6 @@ public class Noslow1 extends Module {
                 this.handleHyt(event);
                 break;
             case 2:
-                this.handleGrim2365(event);
                 break;
             case 3:
                 this.handleUpdatedNcp(event);
@@ -85,6 +85,15 @@ public class Noslow1 extends Module {
                 this.stopBlink();
                 break;
         }
+    }
+
+    @EventTarget(Priority.LOWEST)
+    public void onGrimUpdate(UpdateEvent event) {
+        if (!this.isEnabled() || this.mode.getValue() != 2 || mc.thePlayer == null || mc.theWorld == null) {
+            return;
+        }
+
+        this.handleGrim2365(event);
     }
 
     @EventTarget
