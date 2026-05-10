@@ -33,7 +33,7 @@ public class FullBright extends Module {
     }
 
     @Override
-    public void onEnabled() {
+    public boolean onEnabled() {
         switch (this.mode.getValue()) {
             case 0:
                 this.prevGamma = mc.gameSettings.gammaSetting;
@@ -41,6 +41,7 @@ public class FullBright extends Module {
             case 1:
                 this.appliedNightVision = true;
         }
+        return false;
     }
 
     @Override

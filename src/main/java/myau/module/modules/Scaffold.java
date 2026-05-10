@@ -724,7 +724,7 @@ public class Scaffold extends Module {
     }
 
     @Override
-    public void onEnabled() {
+    public boolean onEnabled() {
         if (mc.thePlayer != null) {
             this.lastSlot = mc.thePlayer.inventory.currentItem;
         } else {
@@ -738,6 +738,7 @@ public class Scaffold extends Module {
         this.towerTick = 0;
         this.towerDelay = 0;
         this.towering = false;
+        return false;
     }
 
     @Override

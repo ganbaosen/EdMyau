@@ -11,10 +11,11 @@ public class ViewClip extends Module {
     }
 
     @Override
-    public void onEnabled() {
+    public boolean onEnabled() {
         if (mc.theWorld != null) {
             mc.renderGlobal.loadRenderers();
         }
+        return false;
     }
 
     @Override

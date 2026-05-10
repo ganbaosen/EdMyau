@@ -45,9 +45,10 @@ public class Blink extends Module {
     }
 
     @Override
-    public void onEnabled() {
+    public boolean onEnabled() {
         Myau.blinkManager.setBlinkState(false, Myau.blinkManager.getBlinkingModule());
         Myau.blinkManager.setBlinkState(true, BlinkModules.BLINK);
+        return false;
     }
 
     @Override

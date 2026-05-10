@@ -4,7 +4,7 @@ plugins {
     java
     id("gg.essential.loom") version "0.10.0.+"
     id("dev.architectury.architectury-pack200") version "0.1.3"
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 //Constants:
 val baseGroup: String by project
@@ -30,6 +30,7 @@ loom {
     }
     runConfigs {
         "client" {
+            runDir("run/dev")
             if (SystemUtils.IS_OS_MAC_OSX) {
                 // This argument causes a crash on macOS
                 vmArgs.remove("-XstartOnFirstThread")
@@ -72,6 +73,8 @@ dependencies {
     shadowImpl("org.spongepowered:mixin:0.7.11-SNAPSHOT") {
         isTransitive = false
     }
+    shadowImpl("com.squareup.okhttp3:okhttp:3.14.9")
+    shadowImpl("com.googlecode.soundlibs:basicplayer:3.0.0.0")
     annotationProcessor("org.spongepowered:mixin:0.8.5-SNAPSHOT")
     // If you don't want to log in with your real minecraft account, remove this line
     runtimeOnly("me.djtheredstoner:DevAuth-forge-legacy:1.2.1")
@@ -79,6 +82,11 @@ dependencies {
 // Tasks:
 tasks.withType(JavaCompile::class) {
     options.encoding = "UTF-8"
+}
+tasks.withType<JavaExec>().configureEach {
+    javaLauncher.set(javaToolchains.launcherFor {
+        languageVersion.set(JavaLanguageVersion.of(8))
+    })
 }
 tasks.withType(org.gradle.jvm.tasks.Jar::class) {
     archiveBaseName.set(jarName)

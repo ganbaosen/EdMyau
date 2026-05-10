@@ -115,12 +115,29 @@ public class KillAura extends Module {
                         && RotationUtil.rayTrace(this.target.getBox(), yaw, pitch, this.attackRange.getValue()) == null) {
                     return false;
                 } else {
+                    AutoGapple autoGapple = (AutoGapple) Myau.moduleManager.modules.get(AutoGapple.class);
+                    boolean combatEating = autoGapple.isEnabled() && autoGapple.isEatingGapple() && autoGapple.alwaysAttack.getValue();
+                    boolean silentEating = combatEating && autoGapple.isSilentEating() && autoGapple.getGappleSlot() != -1;
+                    int originalSlot = mc.thePlayer.inventory.currentItem;
+                    int swordSlot = combatEating ? this.findCombatSwordSlot(originalSlot) : -1;
+                    int returnSlot = silentEating ? autoGapple.getGappleSlot() : originalSlot;
                     AttackEvent event = new AttackEvent(this.target.getEntity());
                     EventManager.call(event);
+                    if (swordSlot != -1 && (silentEating || swordSlot != originalSlot)) {
+                        PacketUtil.sendPacket(new C09PacketHeldItemChange(swordSlot));
+                        ((IAccessorPlayerControllerMP) mc.playerController).setCurrentPlayerItem(swordSlot);
+                    }
                     ((IAccessorPlayerControllerMP) mc.playerController).callSyncCurrentPlayItem();
                     PacketUtil.sendPacket(new C02PacketUseEntity(this.target.getEntity(), Action.ATTACK));
                     if (mc.playerController.getCurrentGameType() != GameType.SPECTATOR) {
                         PlayerUtil.attackEntity(this.target.getEntity());
+                    }
+                    if (swordSlot != -1 && (silentEating || swordSlot != originalSlot)) {
+                        PacketUtil.sendPacket(new C09PacketHeldItemChange(returnSlot));
+                        if (!silentEating) {
+                            ((IAccessorPlayerControllerMP) mc.playerController).setCurrentPlayerItem(originalSlot);
+                            ((IAccessorPlayerControllerMP) mc.playerController).callSyncCurrentPlayItem();
+                        }
                     }
                     this.hitRegistered = true;
                     return true;
@@ -168,14 +185,16 @@ public class KillAura extends Module {
     }
 
     private boolean canAttack() {
+        boolean combatEating = this.isCombatEating();
         if (this.inventoryCheck.getValue() && mc.currentScreen instanceof GuiContainer) {
             return false;
-        } else if (!(Boolean) this.weaponsOnly.getValue()
+        } else if (combatEating
+                || !(Boolean) this.weaponsOnly.getValue()
                 || ItemUtil.hasRawUnbreakingEnchant()
                 || this.allowTools.getValue() && ItemUtil.isHoldingTool()) {
             if (((IAccessorPlayerControllerMP) mc.playerController).getIsHittingBlock()) {
                 return false;
-            } else if ((ItemUtil.isEating() || ItemUtil.isUsingBow()) && PlayerUtil.isUsingItem()) {
+            } else if (!combatEating && (ItemUtil.isEating() || ItemUtil.isUsingBow()) && PlayerUtil.isUsingItem()) {
                 return false;
             } else {
                 AutoHeal autoHeal = (AutoHeal) Myau.moduleManager.modules.get(AutoHeal.class);
@@ -203,6 +222,9 @@ public class KillAura extends Module {
     }
 
     private boolean canAutoBlock() {
+        if (this.isCombatEating()) {
+            return false;
+        }
         if (!ItemUtil.isHoldingSword()) {
             return false;
         } else {
@@ -321,6 +343,10 @@ public class KillAura extends Module {
         return -1;
     }
 
+    private int findCombatSwordSlot(int currentSlot) {
+        return ItemUtil.isHoldingSword() ? currentSlot : this.findSwordSlot(currentSlot);
+    }
+
     public KillAura() {
         super("KillAura", false);
         this.lastTickProcessed = 0;
@@ -379,6 +405,9 @@ public class KillAura extends Module {
     }
 
     public boolean shouldAutoBlock() {
+        if (this.isCombatEating()) {
+            return false;
+        }
         if (this.isPlayerBlocking() && this.isBlocking) {
             return !mc.thePlayer.isInWater() && !mc.thePlayer.isInLava() && (this.autoBlock.getValue() == 3  // HYPIXEL
                     || this.autoBlock.getValue() == 4 // BLINK
@@ -396,6 +425,15 @@ public class KillAura extends Module {
 
     public boolean isPlayerBlocking() {
         return (mc.thePlayer.isUsingItem() || this.blockingState) && ItemUtil.isHoldingSword();
+    }
+
+    private boolean isCombatEating() {
+        AutoGapple autoGapple = (AutoGapple) Myau.moduleManager.modules.get(AutoGapple.class);
+        return autoGapple != null
+                && autoGapple.isEnabled()
+                && autoGapple.isEatingGapple()
+                && autoGapple.alwaysAttack.getValue()
+                && this.findCombatSwordSlot(mc.thePlayer.inventory.currentItem) != -1;
     }
 
     @EventTarget(Priority.LOW)
@@ -416,6 +454,7 @@ public class KillAura extends Module {
                 this.isBlocking = false;
                 this.fakeBlockState = false;
                 this.blockTick = 0;
+                this.blockingState = false;
             }
             if (attack) {
                 boolean swap = false;
@@ -801,7 +840,8 @@ public class KillAura extends Module {
                         this.lastTickProcessed = mc.thePlayer.ticksExisted;
                         ChatUtil.sendFormatted(
                                 String.format(
-                                        "%sHealth: %s&l%s&r (&otick: %d&r)&r",
+                                        //"%sHealth: %s&l%s&r (&otick: %d&r)&r",
+                                        "%s袁子晨先生提醒您，您的血量变化了: %s&l%s&r (&otick: %d&r)&r",
                                         Myau.clientName,
                                         packet > 0.0F ? "&a" : "&c",
                                         df.format(packet),
@@ -820,7 +860,7 @@ public class KillAura extends Module {
                                     this.lastTickProcessed = mc.thePlayer.ticksExisted;
                                     ChatUtil.sendFormatted(
                                             String.format(
-                                                    "%sHealth: %s&l%s&r (&otick: %d&r)&r",
+                                                    "%s袁子晨先生提醒您，您的血量变化了: %s&l%s&r (&otick: %d&r)&r",
                                                     Myau.clientName,
                                                     diff > 0.0F ? "&a" : "&c",
                                                     df.format(diff),
@@ -918,12 +958,13 @@ public class KillAura extends Module {
     }
 
     @Override
-    public void onEnabled() {
+    public boolean onEnabled() {
         this.target = null;
         this.switchTick = 0;
         this.hitRegistered = false;
         this.attackDelayMS = 0L;
         this.blockTick = 0;
+        return false;
     }
 
     @Override

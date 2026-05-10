@@ -10,6 +10,7 @@ import myau.events.UpdateEvent;
 import myau.management.RotationState;
 import myau.module.modules.AntiDebuff;
 import myau.module.modules.NoSlow;
+import myau.module.modules.Noslow1;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.potion.Potion;
 import net.minecraft.util.BlockPos;
@@ -145,7 +146,10 @@ public abstract class MixinEntityPlayerSP extends MixinEntityPlayer {
     )
     private boolean isUsing(EntityPlayerSP entityPlayerSP) {
         NoSlow noSlow = (NoSlow) Myau.moduleManager.modules.get(NoSlow.class);
-        return (!noSlow.isEnabled() || !noSlow.isAnyActive()) && entityPlayerSP.isUsingItem();
+        Noslow1 noslow1 = (Noslow1) Myau.moduleManager.modules.get(Noslow1.class);
+        boolean noSlowActive = noSlow != null && noSlow.isEnabled() && noSlow.isAnyActive();
+        boolean noslow1Active = noslow1 != null && noslow1.isEnabled() && noslow1.isAnyActive();
+        return !noSlowActive && !noslow1Active && entityPlayerSP.isUsingItem();
     }
 
     @Redirect(

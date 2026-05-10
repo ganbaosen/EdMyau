@@ -63,16 +63,19 @@ public class BindCommand extends Command {
             if (!args.get(1).equals("*")) {
                 Module module = Myau.moduleManager.getModule(args.get(1));
                 if (module == null) {
-                    ChatUtil.sendFormatted(String.format("%sModule not found (&o%s&r)&r", Myau.clientName, args.get(1)));
+                    //ChatUtil.sendFormatted(String.format("%sModule not found (&o%s&r)&r", Myau.clientName, args.get(1)));
+                    ChatUtil.sendFormatted(String.format("%s袁子晨先生提醒您，模块没有找到 (&o%s&r)&r", Myau.clientName, args.get(1)));
                 } else {
                     module.setKey(keyIndex);
                     if (keyIndex == 0) {
                         ChatUtil.sendFormatted(
-                                String.format("%sUnbind &o%s&r", Myau.clientName, module.getName())
+                                //String.format("%sUnbind &o%s&r", Myau.clientName, module.getName())
+                                String.format("%s袁子晨先生提醒您，成功取消绑定 &o%s&r", Myau.clientName, module.getName())
                         );
                     } else {
                         ChatUtil.sendFormatted(
-                                String.format("%sBound &o%s&r to &l[%s]&r", Myau.clientName, module.getName(), KeyBindUtil.getKeyName(keyIndex))
+                                //String.format("%sBound &o%s&r to &l[%s]&r", Myau.clientName, module.getName(), KeyBindUtil.getKeyName(keyIndex))
+                                String.format("%s袁子晨先生提醒您，成功把 &o%s&r 绑定到 &l[%s]&r", Myau.clientName, module.getName(), KeyBindUtil.getKeyName(keyIndex))
                         );
                     }
                 }
@@ -82,11 +85,13 @@ public class BindCommand extends Command {
                 }
                 if (keyIndex == 0) {
                     ChatUtil.sendFormatted(
-                            String.format("%sUnbind all modules&r", Myau.clientName)
+                            //String.format("%sUnbind all modules&r", Myau.clientName)
+                            String.format("%s袁子晨先生提醒您，成功取消绑定所有功能&r", Myau.clientName)
                     );
                 } else {
                     ChatUtil.sendFormatted(
-                            String.format("%sBind all modules to &l[%s]&r", Myau.clientName, KeyBindUtil.getKeyName(keyIndex))
+                            //String.format("%sBind all modules to &l[%s]&r", Myau.clientName, KeyBindUtil.getKeyName(keyIndex))
+                            String.format("%s袁子晨先生提醒您，成功绑定所有功能到 &l[%s]&r", Myau.clientName, KeyBindUtil.getKeyName(keyIndex))
                     );
                 }
             }

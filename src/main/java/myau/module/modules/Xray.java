@@ -300,11 +300,12 @@ public class Xray extends Module {
     }
 
     @Override
-    public void onEnabled() {
+    public boolean onEnabled() {
         ForgeModContainer.forgeLightPipelineEnabled = false;
         if (mc.renderGlobal != null) {
             mc.renderGlobal.loadRenderers();
         }
+        return false;
     }
 
     @Override

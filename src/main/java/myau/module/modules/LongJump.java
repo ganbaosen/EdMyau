@@ -234,12 +234,13 @@ public class LongJump extends Module {
     }
 
     @Override
-    public void onEnabled() {
+    public boolean onEnabled() {
         this.jumpTimer.reset();
         if (this.isAutoMode() && this.findFireballInHotbar() == -1) {
             this.setEnabled(false);
             ChatUtil.sendFormatted(String.format("%s%s: &cNo fireball found in your hotbar!&r", Myau.clientName, this.getName()));
         }
+        return false;
     }
 
     @Override

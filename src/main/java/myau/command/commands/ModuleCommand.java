@@ -22,7 +22,7 @@ public class ModuleCommand extends Command {
         if (args.size() >= 2) {
             Property<?> property = Myau.propertyManager.getProperty(module, args.get(1));
             if (property == null) {
-                ChatUtil.sendFormatted(String.format("%s%s has no property &o%s&r", Myau.clientName, module.getName(), args.get(1)));
+                //ChatUtil.sendFormatted(String.format("%s%s has no property &o%s&r", Myau.clientName, module.getName(), args.get(1)));
             } else if (args.size() < 3 && !(property instanceof BooleanProperty)) {
                 ChatUtil.sendFormatted(
                         String.format(

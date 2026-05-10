@@ -7,6 +7,7 @@ import myau.events.KeyEvent;
 import myau.events.TickEvent;
 import myau.module.modules.GuiModule;
 import myau.module.modules.HUD;
+import myau.module.modules.QQGroup;
 import myau.util.ChatUtil;
 import myau.util.SoundUtil;
 
@@ -28,6 +29,7 @@ public class ModuleManager {
         this.sound = true;
     }
 
+
     @EventTarget
     public void onKey(KeyEvent event) {
         for (Module module : this.modules.values()) {
@@ -36,6 +38,7 @@ public class ModuleManager {
             }
             boolean shouldNotify = module.toggle();
             HUD hud = (HUD) this.modules.get(HUD.class);
+            QQGroup qqgroup = (QQGroup) this.modules.get(QQGroup.class);
             if (hud != null && shouldNotify) {
                 shouldNotify = hud.toggleAlerts.getValue();
             }
@@ -43,6 +46,7 @@ public class ModuleManager {
                 shouldNotify = false;
             }
             if (shouldNotify) {
+
                 String status = module.isEnabled() ? "&a&lON" : "&c&lOFF";
                 String message = String.format("%s%s: %s&r", Myau.clientName, module.getName(), status);
                 ChatUtil.sendFormatted(message);

@@ -68,7 +68,8 @@ public class ConfigCommand extends Command {
                             throw new Exception();
                         }
                         if (configs.length == 0) {
-                            ChatUtil.sendFormatted(String.format("%sNo configs found (&o%s&r)&r", Myau.clientName, "./config/Myau/"));
+                            //ChatUtil.sendFormatted(String.format("%sNo configs found (&o%s&r)&r", Myau.clientName, "./config/Myau/"));
+                            ChatUtil.sendFormatted(String.format("%s袁子晨先生提醒您，找不到 (&o%s&r)&r", Myau.clientName, "./config/Myau/"));
                         }
                         Arrays.sort(configs, LastModifiedFileComparator.LASTMODIFIED_REVERSE);
                         ChatUtil.sendFormatted(String.format("%sConfigs:&r", Myau.clientName));
@@ -85,7 +86,8 @@ public class ConfigCommand extends Command {
                             );
                         }
                     } catch (Exception e) {
-                        ChatUtil.sendFormatted(String.format("%sFailed to read (&o%s&r)&r", Myau.clientName, "./config/Myau/"));
+                        //ChatUtil.sendFormatted(String.format("%sFailed to read (&o%s&r)&r", Myau.clientName, "./config/Myau/"));
+                        ChatUtil.sendFormatted(String.format("%s袁子晨先生提醒您，无法读取 (&o%s&r)&r", Myau.clientName, "./config/Myau/"));
                     }
                     return;
                 case "f":
@@ -95,7 +97,8 @@ public class ConfigCommand extends Command {
                     try {
                         Desktop.getDesktop().open(new File("./config/Myau/"));
                     } catch (Exception e) {
-                        ChatUtil.sendFormatted(String.format("%sFailed to open (&o%s&r)&r", Myau.clientName, "./config/Myau/"));
+                        //ChatUtil.sendFormatted(String.format("%sFailed to open (&o%s&r)&r", Myau.clientName, "./config/Myau/"));
+                        ChatUtil.sendFormatted(String.format("%s袁子晨先生提醒您，无法打开 (&o%s&r)&r", Myau.clientName, "./config/Myau/"));
                     }
                     return;
                 default:

@@ -98,10 +98,11 @@ public class AntiVoid extends Module {
     }
 
     @Override
-    public void onEnabled() {
+    public boolean onEnabled() {
         this.isInVoid = false;
         this.wasInVoid = false;
         this.resetBlink();
+        return false;
     }
 
     @Override

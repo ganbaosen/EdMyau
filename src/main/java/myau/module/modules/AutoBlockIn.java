@@ -69,7 +69,7 @@ public class AutoBlockIn extends Module {
     }
 
     @Override
-    public void onEnabled() {
+    public boolean onEnabled() {
         if (mc.thePlayer != null) {
             serverYaw = mc.thePlayer.rotationYaw;
             serverPitch = mc.thePlayer.rotationPitch;
@@ -82,6 +82,7 @@ public class AutoBlockIn extends Module {
             targetHitVec = null;
             lastPlaceTime = 0;
         }
+        return false;
     }
 
     @Override

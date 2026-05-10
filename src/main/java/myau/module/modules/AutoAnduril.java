@@ -95,11 +95,12 @@ public class AutoAnduril extends Module {
     }
 
     @Override
-    public void onEnabled() {
+    public boolean onEnabled() {
         this.previousSlot = -1;
         this.currentSlot = -1;
         this.intervalTick = this.interval.getValue();
         this.holdTick = -1;
+        return false;
     }
 
     @Override

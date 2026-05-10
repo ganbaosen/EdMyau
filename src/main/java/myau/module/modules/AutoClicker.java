@@ -1,17 +1,24 @@
 package myau.module.modules;
 
+import myau.Myau;
 import myau.event.EventTarget;
 import myau.event.types.EventType;
 import myau.event.types.Priority;
 import myau.events.LeftClickMouseEvent;
 import myau.events.TickEvent;
+import myau.mixin.IAccessorPlayerControllerMP;
 import myau.module.Module;
 import myau.util.*;
 import myau.property.properties.BooleanProperty;
 import myau.property.properties.FloatProperty;
 import myau.property.properties.IntProperty;
 import net.minecraft.client.Minecraft;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemSword;
+import net.minecraft.network.play.client.C02PacketUseEntity;
+import net.minecraft.network.play.client.C09PacketHeldItemChange;
 import net.minecraft.util.MovingObjectPosition.MovingObjectType;
 import net.minecraft.world.WorldSettings.GameType;
 
@@ -46,8 +53,58 @@ public class AutoClicker extends Module {
         return mc.objectMouseOver != null && mc.objectMouseOver.typeOfHit == MovingObjectType.BLOCK;
     }
 
+    private int findCombatSwordSlot(int currentSlot) {
+        ItemStack currentItem = mc.thePlayer.inventory.getStackInSlot(currentSlot);
+        if (currentItem != null && currentItem.getItem() instanceof ItemSword) {
+            return currentSlot;
+        }
+        for (int i = 0; i < 9; i++) {
+            if (i != currentSlot) {
+                ItemStack item = mc.thePlayer.inventory.getStackInSlot(i);
+                if (item != null && item.getItem() instanceof ItemSword) {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
+
+    private boolean performCombatEatClick() {
+        if (mc.objectMouseOver == null || mc.objectMouseOver.typeOfHit != MovingObjectType.ENTITY) {
+            return false;
+        }
+
+        Entity target = mc.objectMouseOver.entityHit;
+        if (!(target instanceof EntityPlayer)) {
+            return false;
+        }
+
+        int originalSlot = mc.thePlayer.inventory.currentItem;
+        int swordSlot = this.findCombatSwordSlot(originalSlot);
+        if (swordSlot == -1) {
+            return false;
+        }
+
+        mc.thePlayer.swingItem();
+        if (swordSlot != originalSlot) {
+            PacketUtil.sendPacket(new C09PacketHeldItemChange(swordSlot));
+            ((IAccessorPlayerControllerMP) mc.playerController).setCurrentPlayerItem(swordSlot);
+        }
+        ((IAccessorPlayerControllerMP) mc.playerController).callSyncCurrentPlayItem();
+        PacketUtil.sendPacket(new C02PacketUseEntity(target, C02PacketUseEntity.Action.ATTACK));
+        if (swordSlot != originalSlot) {
+            PacketUtil.sendPacket(new C09PacketHeldItemChange(originalSlot));
+            ((IAccessorPlayerControllerMP) mc.playerController).setCurrentPlayerItem(originalSlot);
+            ((IAccessorPlayerControllerMP) mc.playerController).callSyncCurrentPlayItem();
+        }
+        return true;
+    }
+
     private boolean canClick() {
-        if (!this.weaponsOnly.getValue()
+        AutoGapple autoGapple = (AutoGapple) Myau.moduleManager.modules.get(AutoGapple.class);
+        boolean combatEating = autoGapple.isEnabled() && autoGapple.isEatingGapple() && autoGapple.alwaysAttack.getValue();
+        if (combatEating
+                || !this.weaponsOnly.getValue()
                 || ItemUtil.hasRawUnbreakingEnchant()
                 || this.allowTools.getValue() && ItemUtil.isHoldingTool()) {
             if (this.breakBlocks.getValue() && this.isBreakingBlock() && !this.hasValidTarget()) {
@@ -115,12 +172,18 @@ public class AutoClicker extends Module {
                     KeyBindUtil.updateKeyState(mc.gameSettings.keyBindUseItem.getKeyCode());
                 }
                 if (this.isEnabled() && this.canClick() && mc.gameSettings.keyBindAttack.isKeyDown()) {
-                    if (!mc.thePlayer.isUsingItem()) {
+                    AutoGapple autoGapple = (AutoGapple) Myau.moduleManager.modules.get(AutoGapple.class);
+                    boolean combatEating = autoGapple.isEnabled() && autoGapple.isEatingGapple() && autoGapple.alwaysAttack.getValue();
+                    if (combatEating || !mc.thePlayer.isUsingItem()) {
                         while (this.clickDelay <= 0L) {
-                            this.clickPending = true;
                             this.clickDelay = this.clickDelay + this.getNextClickDelay();
-                            KeyBindUtil.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), false);
-                            KeyBindUtil.pressKeyOnce(mc.gameSettings.keyBindAttack.getKeyCode());
+                            if (combatEating) {
+                                this.performCombatEatClick();
+                            } else {
+                                this.clickPending = true;
+                                KeyBindUtil.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), false);
+                                KeyBindUtil.pressKeyOnce(mc.gameSettings.keyBindAttack.getKeyCode());
+                            }
                         }
                     }
                     if (this.blockHit.getValue()
@@ -149,9 +212,10 @@ public class AutoClicker extends Module {
     }
 
     @Override
-    public void onEnabled() {
+    public boolean onEnabled() {
         this.clickDelay = 0L;
         this.blockHitDelay = 0L;
+        return false;
     }
 
     @Override

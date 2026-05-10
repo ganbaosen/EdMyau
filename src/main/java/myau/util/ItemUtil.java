@@ -427,6 +427,11 @@ public class ItemUtil {
                 return itemStack.getItem() instanceof ItemAppleGold;
             }
         },
+        Pearl {
+            public boolean contains(ItemStack itemStack) {
+                return itemStack.getItem() instanceof ItemEnderPearl;
+            }
+        },
         Arrow {
             public boolean contains(ItemStack itemStack) {
                 return itemStack.getItem() == Items.arrow;

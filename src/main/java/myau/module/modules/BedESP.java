@@ -143,9 +143,10 @@ public class BedESP extends Module {
     }
 
     @Override
-    public void onEnabled() {
+    public boolean onEnabled() {
         if (mc.renderGlobal != null) {
             mc.renderGlobal.loadRenderers();
         }
+        return false;
     }
 }

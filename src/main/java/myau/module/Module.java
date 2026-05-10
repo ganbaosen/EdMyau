@@ -85,10 +85,12 @@ public abstract class Module {
         this.hidden = boolean1;
     }
 
-    public void onEnabled() {
+    public boolean onEnabled() {
+        return false;
     }
 
     public void onDisabled() {
+
     }
 
     public void verifyValue(String string) {

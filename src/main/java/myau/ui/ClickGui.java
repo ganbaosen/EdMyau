@@ -33,6 +33,7 @@ public class ClickGui extends GuiScreen {
         combatModules.add(Myau.moduleManager.getModule(KillAura.class));
         combatModules.add(Myau.moduleManager.getModule(Wtap.class));
         combatModules.add(Myau.moduleManager.getModule(Velocity.class));
+        combatModules.add(Myau.moduleManager.getModule(Velocity1.class));
         combatModules.add(Myau.moduleManager.getModule(Freeze.class));
         combatModules.add(Myau.moduleManager.getModule(Reach.class));
         combatModules.add(Myau.moduleManager.getModule(TargetStrafe.class));
@@ -55,10 +56,12 @@ public class ClickGui extends GuiScreen {
         movementModules.add(Myau.moduleManager.getModule(Blink.class));
         movementModules.add(Myau.moduleManager.getModule(NoFall.class));
         movementModules.add(Myau.moduleManager.getModule(NoSlow.class));
+        movementModules.add(Myau.moduleManager.getModule(Noslow1.class));
         movementModules.add(Myau.moduleManager.getModule(KeepSprint.class));
         movementModules.add(Myau.moduleManager.getModule(Eagle.class));
         movementModules.add(Myau.moduleManager.getModule(NoJumpDelay.class));
         movementModules.add(Myau.moduleManager.getModule(AntiVoid.class));
+        movementModules.add(Myau.moduleManager.getModule(Stuck.class));
 
         List<Module> renderModules = new ArrayList<>();
         renderModules.add(Myau.moduleManager.getModule(ESP.class));
@@ -78,10 +81,13 @@ public class ClickGui extends GuiScreen {
         renderModules.add(Myau.moduleManager.getModule(ChestESP.class));
         renderModules.add(Myau.moduleManager.getModule(Trajectories.class));
         renderModules.add(Myau.moduleManager.getModule(Radar.class));
+        renderModules.add(Myau.moduleManager.getModule(Animations.class));
+        renderModules.add(Myau.moduleManager.getModule(QQGroup.class));
 
         List<Module> playerModules = new ArrayList<>();
         playerModules.add(Myau.moduleManager.getModule(AutoHeal.class));
         playerModules.add(Myau.moduleManager.getModule(AutoTool.class));
+        //playerModules.add(Myau.moduleManager.getModule(ChestAura.class));
         playerModules.add(Myau.moduleManager.getModule(ChestStealer.class));
         playerModules.add(Myau.moduleManager.getModule(InvManager.class));
         playerModules.add(Myau.moduleManager.getModule(InvWalk.class));
@@ -92,6 +98,7 @@ public class ClickGui extends GuiScreen {
         playerModules.add(Myau.moduleManager.getModule(GhostHand.class));
         playerModules.add(Myau.moduleManager.getModule(MCF.class));
         playerModules.add(Myau.moduleManager.getModule(AntiDebuff.class));
+        playerModules.add(Myau.moduleManager.getModule(AutoGapple.class));
 
         List<Module> miscModules = new ArrayList<>();
         miscModules.add(Myau.moduleManager.getModule(Spammer.class));
@@ -100,6 +107,7 @@ public class ClickGui extends GuiScreen {
         miscModules.add(Myau.moduleManager.getModule(LightningTracker.class));
         miscModules.add(Myau.moduleManager.getModule(NoRotate.class));
         miscModules.add(Myau.moduleManager.getModule(NickHider.class));
+        miscModules.add(Myau.moduleManager.getModule(MusicPlayer.class));
         miscModules.add(Myau.moduleManager.getModule(AntiObbyTrap.class));
         miscModules.add(Myau.moduleManager.getModule(AntiObfuscate.class));
         miscModules.add(Myau.moduleManager.getModule(AutoAnduril.class));
@@ -168,7 +176,7 @@ public class ClickGui extends GuiScreen {
         drawRect(0, 0, this.width, this.height, new Color(0, 0, 0, 100).getRGB());
 
         mc.fontRendererObj.drawStringWithShadow("Myau " + Myau.version, 4, this.height - 3 - mc.fontRendererObj.FONT_HEIGHT * 2, new Color(60, 162, 253).getRGB());
-        mc.fontRendererObj.drawStringWithShadow("dev, ksyz", 4, this.height - 3 - mc.fontRendererObj.FONT_HEIGHT, new Color(60, 162, 253).getRGB());
+        mc.fontRendererObj.drawStringWithShadow("dev, dot", 4, this.height - 3 - mc.fontRendererObj.FONT_HEIGHT, new Color(60, 162, 253).getRGB());
 
         for (CategoryComponent category : categoryList) {
             category.render(this.fontRendererObj);
