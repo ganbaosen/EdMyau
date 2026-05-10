@@ -1,4 +1,4 @@
-# Open Myau
+# EdMyau
 
 ![Preview](/images/image2.png)
 
@@ -6,7 +6,6 @@
 
 Based on **`Myau-250910`**, with added features and improvements not found in the original, focused on expanding and refining the original Myau client.
 
-[![Discord](https://invidget.switchblade.xyz/yjSaTufmqU)](https://discord.gg/yjSaTufmqU)
 
 ## Changes
 
@@ -27,4 +26,4 @@ You can open an issue or submit a pull request to help improve Open Myau.
 
 If you’re interested in co-developing or have questions, feel free to reach out:
 
-* Discord: `60124808866_88040`
+QQ：2565825001
