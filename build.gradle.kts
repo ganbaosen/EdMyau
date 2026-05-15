@@ -13,6 +13,7 @@ val version: String by project
 val mixinGroup = "$baseGroup.mixin"
 val modid: String by project
 val jarName: String by project
+val lombokVersion = "1.18.46"
 val transformerFile = file("src/main/resources/accesstransformer.cfg")
 // Toolchains:
 java {
@@ -75,7 +76,9 @@ dependencies {
     }
     shadowImpl("com.squareup.okhttp3:okhttp:3.14.9")
     shadowImpl("com.googlecode.soundlibs:basicplayer:3.0.0.0")
+    compileOnly("org.projectlombok:lombok:$lombokVersion")
     annotationProcessor("org.spongepowered:mixin:0.8.5-SNAPSHOT")
+    annotationProcessor("org.projectlombok:lombok:$lombokVersion")
     // If you don't want to log in with your real minecraft account, remove this line
     runtimeOnly("me.djtheredstoner:DevAuth-forge-legacy:1.2.1")
 }

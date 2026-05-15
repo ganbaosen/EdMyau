@@ -136,6 +136,7 @@ public class Myau {
         moduleManager.modules.put(Xray.class, new Xray());
         moduleManager.modules.put(Animations.class, new Animations());
         moduleManager.modules.put(QQGroup.class, new QQGroup());
+        moduleManager.modules.put(ThrowAura.class, new ThrowAura());
         commandManager.commands.add(new BindCommand());
         commandManager.commands.add(new ConfigCommand());
         commandManager.commands.add(new DenickCommand());

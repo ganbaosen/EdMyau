@@ -100,6 +100,7 @@ public class ClickGui extends GuiScreen {
         playerModules.add(Myau.moduleManager.getModule(MCF.class));
         playerModules.add(Myau.moduleManager.getModule(AntiDebuff.class));
         playerModules.add(Myau.moduleManager.getModule(AutoGapple.class));
+        playerModules.add(Myau.moduleManager.getModule(ThrowAura.class));
 
         List<Module> miscModules = new ArrayList<>();
         miscModules.add(Myau.moduleManager.getModule(Spammer.class));
