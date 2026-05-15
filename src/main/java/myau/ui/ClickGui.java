@@ -108,7 +108,6 @@ public class ClickGui extends GuiScreen {
         miscModules.add(Myau.moduleManager.getModule(LightningTracker.class));
         miscModules.add(Myau.moduleManager.getModule(NoRotate.class));
         miscModules.add(Myau.moduleManager.getModule(NickHider.class));
-        miscModules.add(Myau.moduleManager.getModule(MusicPlayer.class));
         miscModules.add(Myau.moduleManager.getModule(AntiObbyTrap.class));
         miscModules.add(Myau.moduleManager.getModule(AntiObfuscate.class));
         miscModules.add(Myau.moduleManager.getModule(AutoAnduril.class));
