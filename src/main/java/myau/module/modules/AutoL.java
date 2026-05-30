@@ -113,7 +113,7 @@ public class AutoL extends Module {
             "一破：卧龙出山，你已被SouthSide客户端击毙",
             "双连：一战成名，你已被SilenceFix客户端击毙",
             "三连：举世皆惊，你已被Myau客户端击毙",
-            "四连：天下无敌，你已被Leader客户端击毙",
+            "四连：天下无敌，你已被EdMyau客户端击毙",
             "五连：诛天灭地，你已被Augustus客户端击毙"
     };
 
