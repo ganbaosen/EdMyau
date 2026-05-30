@@ -149,6 +149,7 @@ public class Myau {
         moduleManager.modules.put(ThrowAura.class, new ThrowAura());
         moduleManager.modules.put(PartySpammer.class, new PartySpammer());
         moduleManager.modules.put(AutoL.class, new AutoL());
+        moduleManager.modules.put(KillAuraNG.class, new KillAuraNG());
         commandManager.commands.add(new BindCommand());
         commandManager.commands.add(new ConfigCommand());
         commandManager.commands.add(new DenickCommand());

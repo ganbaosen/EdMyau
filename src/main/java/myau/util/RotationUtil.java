@@ -10,7 +10,22 @@ import net.minecraft.util.Vec3;
 
 public class RotationUtil {
     private static final Minecraft mc = Minecraft.getMinecraft();
+    public static boolean hasVisiblePoint(AxisAlignedBB boundingBox) {
+        Vec3 eyePos = RotationUtil.mc.thePlayer.getPositionEyes(1.0f);
+        double centerX = (boundingBox.minX + boundingBox.maxX) / 2.0;
+        double centerZ = (boundingBox.minZ + boundingBox.maxZ) / 2.0;
+        double height = boundingBox.maxY - boundingBox.minY;
+        double[] yRatios = new double[]{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9};
 
+        for (double ratio : yRatios) {
+            double targetY = boundingBox.minY + ratio * height;
+            Vec3 targetPoint = new Vec3(centerX, targetY, centerZ);
+            if (RotationUtil.mc.theWorld.rayTraceBlocks(eyePos, targetPoint) == null) {
+                return true;
+            }
+        }
+        return false;
+    }
     public static float wrapAngleDiff(float angle, float target) {
         return target + MathHelper.wrapAngleTo180_float(angle - target);
     }
