@@ -1,6 +1,7 @@
 package myau.module.modules;
 
 import com.google.common.base.CaseFormat;
+import io.netty.buffer.Unpooled;
 import myau.Myau;
 import myau.enums.BlinkModules;
 import myau.event.EventManager;
@@ -32,11 +33,13 @@ import net.minecraft.entity.passive.EntityVillager;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemSword;
+import net.minecraft.network.PacketBuffer;
 import net.minecraft.network.play.client.C02PacketUseEntity;
 import net.minecraft.network.play.client.C02PacketUseEntity.Action;
 import net.minecraft.network.play.client.C07PacketPlayerDigging;
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement;
 import net.minecraft.network.play.client.C09PacketHeldItemChange;
+import net.minecraft.network.play.client.C17PacketCustomPayload;
 import net.minecraft.network.play.server.S06PacketUpdateHealth;
 import net.minecraft.network.play.server.S1CPacketEntityMetadata;
 import net.minecraft.util.*;
@@ -62,11 +65,24 @@ public class KillAura extends Module {
     private boolean fakeBlockState = false;
     private boolean blinkReset = false;
     private long attackDelayMS = 0L;
-    private int blockTick = 0;
+    public int blockTick = 0;
+    private boolean swapped = false;
+    private boolean postBlock = false;
+    private boolean postSwap = false;
     private int lastTickProcessed;
     public final ModeProperty mode;
     public final ModeProperty sort;
     public final ModeProperty autoBlock;
+    public final BooleanProperty hypixelNoSwap;
+    public final IntProperty hypixelCustomMaxTick;
+    public final IntProperty hypixelCustomStartBlinkTick;
+    public final IntProperty hypixelCustomStopBlinkTick;
+    public final IntProperty hypixelCustomSwapTick;
+    public final IntProperty hypixelCustomSwitchBackTick;
+    public final IntProperty hypixelCustomStopBlockTick;
+    public final IntProperty hypixelCustomAttackTick;
+    public final IntProperty hypixelCustomStartBlockTick;
+    public final BooleanProperty hypixelCustomPostStartBlock;
     public final BooleanProperty autoBlockRequirePress;
     public final FloatProperty autoBlockMinCPS;
     public final FloatProperty autoBlockMaxCPS;
@@ -353,8 +369,18 @@ public class KillAura extends Module {
         this.mode = new ModeProperty("mode", 0, new String[]{"SINGLE", "SWITCH"});
         this.sort = new ModeProperty("sort", 0, new String[]{"DISTANCE", "HEALTH", "HURT_TIME", "FOV"});
         this.autoBlock = new ModeProperty(
-                "auto-block", 2, new String[]{"NONE", "VANILLA", "SPOOF", "HYPIXEL", "BLINK", "INTERACT", "SWAP", "LEGIT", "FAKE"}
+                "auto-block", 2, new String[]{"NONE", "VANILLA", "SPOOF", "HYPIXEL", "BLINK", "INTERACT", "SWAP", "LEGIT", "FAKE", "HYPIXEL_FULL", "HYPIXEL_TEST", "HYPIXEL_CUSTOM"}
         );
+        this.hypixelNoSwap = new BooleanProperty("hypixel-no-swap", true, () -> this.autoBlock.getValue() == 9);
+        this.hypixelCustomMaxTick = new IntProperty("hypixel-custom-max-tick", 3, 1, 5, () -> this.autoBlock.getValue() == 11);
+        this.hypixelCustomStartBlinkTick = new IntProperty("hypixel-custom-start-blink-tick", 0, 1, 5, () -> this.autoBlock.getValue() == 11);
+        this.hypixelCustomStopBlinkTick = new IntProperty("hypixel-custom-stop-blink-tick", 2, 1, 5, () -> this.autoBlock.getValue() == 11);
+        this.hypixelCustomSwapTick = new IntProperty("hypixel-custom-swap-tick", 2, 1, 5, () -> this.autoBlock.getValue() == 11);
+        this.hypixelCustomSwitchBackTick = new IntProperty("hypixel-custom-switch-back-tick", 2, 1, 5, () -> this.autoBlock.getValue() == 11);
+        this.hypixelCustomStopBlockTick = new IntProperty("hypixel-custom-stop-block-tick", 2, 1, 5, () -> this.autoBlock.getValue() == 11);
+        this.hypixelCustomAttackTick = new IntProperty("hypixel-custom-attack-tick", 0, 1, 5, () -> this.autoBlock.getValue() == 11);
+        this.hypixelCustomStartBlockTick = new IntProperty("hypixel-custom-start-block-tick", 0, 1, 5, () -> this.autoBlock.getValue() == 11);
+        this.hypixelCustomPostStartBlock = new BooleanProperty("hypixel-custom-post-start-block", false, () -> this.autoBlock.getValue() == 11);
         this.autoBlockRequirePress = new BooleanProperty("auto-block-require-press", false);
         this.autoBlockMinCPS = new FloatProperty("auto-block-min-aps", 8.0F, 1.0F, 20.0F);
         this.autoBlockMaxCPS = new FloatProperty("auto-block-max-aps", 10.0F, 1.0F, 20.0F);
@@ -413,7 +439,10 @@ public class KillAura extends Module {
                     || this.autoBlock.getValue() == 4 // BLINK
                     || this.autoBlock.getValue() == 5 // INTERACT
                     || this.autoBlock.getValue() == 6 // SWAP
-                    || this.autoBlock.getValue() == 7); // LEGIT
+                    || this.autoBlock.getValue() == 7 // LEGIT
+                    || this.autoBlock.getValue() == 9 // HYPIXEL_FULL
+                    || this.autoBlock.getValue() == 10 // HYPIXEL_TEST
+                    || this.autoBlock.getValue() == 11); // HYPIXEL_CUSTOM
         } else {
             return false;
         }
@@ -705,6 +734,161 @@ public class KillAura extends Module {
                                     && !Myau.playerStateManager.placing) {
                                 swap = true;
                             }
+                            break;
+                        case 9: // HYPIXEL_FULL (LeaderClient port)
+                            if (this.hasValidTarget()) {
+                                if (!Myau.playerStateManager.digging && !Myau.playerStateManager.placing) {
+                                    switch (this.blockTick) {
+                                        case 0:
+                                            if (!this.isPlayerBlocking()) {
+                                                swap = true;
+                                            }
+                                            blocked = true;
+                                            this.blockTick = 1;
+                                            break;
+                                        case 1:
+                                            attack = false;
+                                            this.blockTick = 2;
+                                            break;
+                                        case 2:
+                                            if (this.isPlayerBlocking()) {
+                                                if (!this.hypixelNoSwap.getValue()) {
+                                                    int randomSlot = new Random().nextInt(9);
+                                                    while (randomSlot == mc.thePlayer.inventory.currentItem) {
+                                                        randomSlot = new Random().nextInt(9);
+                                                    }
+                                                    PacketUtil.sendPacket(new C09PacketHeldItemChange(randomSlot));
+                                                    PacketUtil.sendPacket(new C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem));
+                                                }
+                                                this.stopBlock();
+                                            }
+                                            attack = false;
+                                            if (this.attackDelayMS <= 50L) {
+                                                this.blockTick = 0;
+                                            }
+                                            break;
+                                        default:
+                                            this.blockTick = 0;
+                                    }
+                                }
+                                this.isBlocking = true;
+                                this.fakeBlockState = true;
+                            } else {
+                                Myau.blinkManager.setBlinkState(false, BlinkModules.AUTO_BLOCK);
+                                int randomSlot = new Random().nextInt(9);
+                                while (randomSlot == mc.thePlayer.inventory.currentItem) {
+                                    randomSlot = new Random().nextInt(9);
+                                }
+                                PacketUtil.sendPacket(new C09PacketHeldItemChange(randomSlot));
+                                PacketUtil.sendPacket(new C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem));
+                                this.isBlocking = false;
+                                this.fakeBlockState = false;
+                            }
+                            break;
+                        case 10: // HYPIXEL_TEST (LeaderClient port)
+                            if (this.hasValidTarget()) {
+                                if (!Myau.playerStateManager.digging && !Myau.playerStateManager.placing) {
+                                    switch (this.blockTick) {
+                                        case 0:
+                                            blocked = true;
+                                            if (!this.isPlayerBlocking()) {
+                                                swap = true;
+                                            }
+                                            this.blockTick = 1;
+                                            break;
+                                        case 1:
+                                            if (this.isPlayerBlocking()) {
+                                                int randomSlot = new Random().nextInt(9);
+                                                while (randomSlot == mc.thePlayer.inventory.currentItem) {
+                                                    randomSlot = new Random().nextInt(9);
+                                                }
+                                                PacketUtil.sendPacket(new C09PacketHeldItemChange(randomSlot));
+                                                PacketUtil.sendPacket(new C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem));
+                                            }
+                                            attack = false;
+                                            this.blockTick = 2;
+                                            break;
+                                        case 2:
+                                            attack = false;
+                                            this.stopBlock();
+                                            if (this.attackDelayMS <= 50L) {
+                                                this.blockTick = 0;
+                                            }
+                                            break;
+                                        default:
+                                            this.blockTick = 0;
+                                    }
+                                }
+                                this.isBlocking = true;
+                                this.fakeBlockState = true;
+                            } else {
+                                Myau.blinkManager.setBlinkState(false, BlinkModules.AUTO_BLOCK);
+                                int randomSlot = new Random().nextInt(9);
+                                while (randomSlot == mc.thePlayer.inventory.currentItem) {
+                                    randomSlot = new Random().nextInt(9);
+                                }
+                                PacketUtil.sendPacket(new C09PacketHeldItemChange(randomSlot));
+                                PacketUtil.sendPacket(new C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem));
+                                this.isBlocking = false;
+                                this.fakeBlockState = false;
+                            }
+                            break;
+                        case 11: // HYPIXEL_CUSTOM (LeaderClient port)
+                            if (this.hasValidTarget()) {
+                                if (!Myau.playerStateManager.digging && !Myau.playerStateManager.placing) {
+                                    if (this.blockTick + 1 == this.hypixelCustomStartBlinkTick.getValue()) {
+                                        blocked = true;
+                                    }
+                                    if (this.blockTick + 1 != this.hypixelCustomAttackTick.getValue()) {
+                                        attack = false;
+                                    }
+                                    if (this.blockTick + 1 == this.hypixelCustomStartBlockTick.getValue()) {
+                                        if (!this.isPlayerBlocking()) {
+                                            swap = true;
+                                            if (this.hypixelCustomPostStartBlock.getValue()) {
+                                                this.postBlock = true;
+                                            }
+                                        }
+                                    }
+                                    if (this.blockTick + 1 == this.hypixelCustomStopBlinkTick.getValue()) {
+                                        Myau.blinkManager.setBlinkState(false, BlinkModules.AUTO_BLOCK);
+                                    }
+                                    if (this.blockTick + 1 == this.hypixelCustomSwapTick.getValue()) {
+                                        int randomSlot = new Random().nextInt(9);
+                                        while (randomSlot == mc.thePlayer.inventory.currentItem) {
+                                            randomSlot = new Random().nextInt(9);
+                                        }
+                                        PacketUtil.sendPacket(new C09PacketHeldItemChange(randomSlot));
+                                        this.swapped = true;
+                                    }
+                                    if (this.blockTick + 1 == this.hypixelCustomSwitchBackTick.getValue()) {
+                                        if (this.swapped) {
+                                            PacketUtil.sendPacket(new C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem));
+                                            this.swapped = false;
+                                        }
+                                    }
+                                    if (this.blockTick + 1 == this.hypixelCustomStopBlockTick.getValue()) {
+                                        if (this.isPlayerBlocking()) {
+                                            this.stopBlock();
+                                        }
+                                    }
+                                    this.blockTick++;
+                                    if (this.blockTick >= this.hypixelCustomMaxTick.getValue() - 1) {
+                                        this.blockTick = 0;
+                                    }
+                                }
+                                this.isBlocking = true;
+                                this.fakeBlockState = true;
+                            } else {
+                                if (this.swapped) {
+                                    PacketUtil.sendPacket(new C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem));
+                                    this.swapped = false;
+                                }
+                                Myau.blinkManager.setBlinkState(false, BlinkModules.AUTO_BLOCK);
+                                this.isBlocking = false;
+                                this.fakeBlockState = false;
+                            }
+                            break;
                     }
                 }
                 boolean attacked = false;
@@ -733,13 +917,32 @@ public class KillAura extends Module {
                     if (attacked) {
                         this.interactAttack(event.getNewYaw(), event.getNewPitch());
                     } else {
-                        this.sendUseItem();
+                        if (!this.postBlock) {
+                            this.sendUseItem();
+                        }
                     }
                 }
                 if (blocked) {
                     Myau.blinkManager.setBlinkState(false, BlinkModules.AUTO_BLOCK);
                     Myau.blinkManager.setBlinkState(true, BlinkModules.AUTO_BLOCK);
                 }
+            }
+        }
+        if (event.getType() == EventType.POST && this.isEnabled()) {
+            if (this.postSwap) {
+                int randomSlot = new Random().nextInt(9);
+                while (randomSlot == mc.thePlayer.inventory.currentItem) {
+                    randomSlot = new Random().nextInt(9);
+                }
+                PacketUtil.sendPacket(new C09PacketHeldItemChange(randomSlot));
+                mc.getNetHandler().addToSendQueue(new C17PacketCustomPayload("send", new PacketBuffer(Unpooled.buffer())));
+                PacketUtil.sendPacket(new C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem));
+                this.stopBlock();
+                this.postSwap = false;
+            }
+            if (this.postBlock) {
+                this.sendUseItem();
+                this.postBlock = false;
             }
         }
     }
@@ -964,6 +1167,9 @@ public class KillAura extends Module {
         this.hitRegistered = false;
         this.attackDelayMS = 0L;
         this.blockTick = 0;
+        this.swapped = false;
+        this.postBlock = false;
+        this.postSwap = false;
         return false;
     }
 
@@ -973,6 +1179,9 @@ public class KillAura extends Module {
         this.blockingState = false;
         this.isBlocking = false;
         this.fakeBlockState = false;
+        this.swapped = false;
+        this.postBlock = false;
+        this.postSwap = false;
     }
 
     @Override
@@ -982,7 +1191,10 @@ public class KillAura extends Module {
                 || this.autoBlock.getValue() == 4
                 || this.autoBlock.getValue() == 5
                 || this.autoBlock.getValue() == 6
-                || this.autoBlock.getValue() == 7;
+                || this.autoBlock.getValue() == 7
+                || this.autoBlock.getValue() == 9
+                || this.autoBlock.getValue() == 10
+                || this.autoBlock.getValue() == 11;
         if (!this.autoBlock.getName().equals(value)) {
             if (this.swingRange.getName().equals(value)) {
                 if (this.swingRange.getValue() < this.attackRange.getValue()) {
